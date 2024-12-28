@@ -1,0 +1,174 @@
+#!/bin/bash
+
+# Command: sysopctl v0.1.0
+# Author: [Your Name]
+# Description: A custom command for managing system resources and tasks.
+
+VERSION="v0.1.0"
+
+# Function to display the help message
+show_help() {
+    cat <<EOF
+sysopctl - A system management utility
+
+Usage: sysopctl <command> [options]
+
+Commands:
+  --help               Show this help message.
+  --version            Show the command version.
+
+System Management:
+  service list         List all active services.
+  service start <name> Start a specified service.
+  service stop <name>  Stop a specified service.
+
+System Information:
+  system load          Display current system load averages.
+  disk usage           Show disk usage statistics by partition.
+
+Advanced Operations:
+  process monitor      Monitor real-time process activity.
+  logs analyze         Analyze recent critical system logs.
+  backup <path>        Backup specified path.
+
+EOF
+}
+
+# Function to display the version
+show_version() {
+    echo "sysopctl version $VERSION"
+}
+
+# Function to list active services
+list_services() {
+    systemctl list-units --type=service
+}
+
+# Function to display system load
+show_system_load() {
+    uptime
+}
+
+# Function to start a service
+start_service() {
+    local service_name=$1
+    if [ -z "$service_name" ]; then
+        echo "Error: Service name is required."
+        exit 1
+    fi
+    sudo systemctl start "$service_name" && echo "Service '$service_name' started successfully."
+}
+
+# Function to stop a service
+stop_service() {
+    local service_name=$1
+    if [ -z "$service_name" ]; then
+        echo "Error: Service name is required."
+        exit 1
+    fi
+    sudo systemctl stop "$service_name" && echo "Service '$service_name' stopped successfully."
+}
+
+# Function to display disk usage
+show_disk_usage() {
+    df -h
+}
+
+# Function to monitor real-time processes
+monitor_processes() {
+    top
+}
+
+# Function to analyze recent critical logs
+analyze_logs() {
+    journalctl -p crit --since "24 hours ago"
+}
+
+# Function to backup files
+backup_files() {
+    local path=$1
+    if [ -z "$path" ]; then
+        echo "Error: Path to backup is required."
+        exit 1
+    fi
+    local backup_dir="/backup"
+    sudo rsync -av "$path" "$backup_dir" && echo "Backup completed successfully to $backup_dir."
+}
+
+# Main script logic
+case $1 in
+    --help)
+        show_help
+        ;;
+    --version)
+        show_version
+        ;;
+    service)
+        case $2 in
+            list)
+                list_services
+                ;;
+            start)
+                start_service $3
+                ;;
+            stop)
+                stop_service $3
+                ;;
+            *)
+                echo "Invalid service command. Use 'sysopctl --help' for guidance."
+                exit 1
+                ;;
+        esac
+        ;;
+    system)
+        case $2 in
+            load)
+                show_system_load
+                ;;
+            *)
+                echo "Invalid system command. Use 'sysopctl --help' for guidance."
+                exit 1
+                ;;
+        esac
+        ;;
+    disk)
+        case $2 in
+            usage)
+                show_disk_usage
+                ;;
+            *)
+                echo "Invalid disk command. Use 'sysopctl --help' for guidance."
+                exit 1
+                ;;
+        esac
+        ;;
+    process)
+        case $2 in
+            monitor)
+                monitor_processes
+                ;;
+            *)
+                echo "Invalid process command. Use 'sysopctl --help' for guidance."
+                exit 1
+                ;;
+        esac
+        ;;
+    logs)
+        case $2 in
+            analyze)
+                analyze_logs
+                ;;
+            *)
+                echo "Invalid logs command. Use 'sysopctl --help' for guidance."
+                exit 1
+                ;;
+        esac
+        ;;
+    backup)
+        backup_files $2
+        ;;
+    *)
+        echo "Invalid command. Use 'sysopctl --help' for guidance."
+        exit 1
+        ;;
+esac
